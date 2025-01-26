@@ -1,0 +1,162 @@
+#!/bin/bash
+
+# bulkuseradd.sh - A professional, cross-platform script to add multiple users in bulk.
+# This script allows you to add bulk users from the command line or from a file,
+# assign groups, set passwords, set UID ranges, etc.
+
+# Default values
+DEFAULT_SHELL="/bin/bash"
+DEFAULT_PASSWORD="Password123"
+DEFAULT_GROUP="users"
+START_UID=1000
+LOG_FILE=""
+
+# Help message function
+usage() {
+    cat << EOF
+Usage: bulkuseradd [OPTIONS] [USERNAMES...]
+       bulkuseradd -f FILE [OPTIONS]
+
+This script adds users to the system in bulk.
+
+Options:
+  -f FILE            Input file containing usernames (one per line)
+  -g GROUP           Assign users to a specific group (default: users)
+  -u START_UID       Start UID for the first user (default: 1000)
+  -s SHELL           Specify the shell for the users (default: /bin/bash)
+  -p PASSWORD        Set a password for the users (default: Password123)
+  -l, --log          Enable logging of user creation (default: /var/log/bulkuseradd.log)
+  -h, --help         Display this help message and exit
+EOF
+}
+
+# Log function
+log_message() {
+    if [ -n "$LOG_FILE" ]; then
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" >> "$LOG_FILE"
+    fi
+}
+
+# Validate group
+validate_group() {
+    if ! getent group "$GROUP" > /dev/null 2>&1; then
+        echo "Group '$GROUP' does not exist. Creating the group..."
+        groupadd "$GROUP" && log_message "Created group '$GROUP'."
+    fi
+}
+
+# Validate user
+validate_user() {
+    if id "$1" &>/dev/null; then
+        echo "User '$1' already exists, skipping..."
+        log_message "User '$1' already exists, skipping."
+        return 1
+    fi
+    return 0
+}
+
+# Parse command-line arguments
+VALID_OPTIONS="-h --help -f -g -u -s -p -l --log"
+USERS=()
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        -h|--help)
+            usage
+            exit 0
+            ;;
+        -f)
+            FILE=$2
+            shift 2
+            ;;
+        -g)
+            GROUP=$2
+            shift 2
+            ;;
+        -u)
+            START_UID=$2
+            shift 2
+            ;;
+        -s)
+            SHELL=$2
+            shift 2
+            ;;
+        -p)
+            PASSWORD=$2
+            shift 2
+            ;;
+        -l|--log)
+            LOG_FILE="/var/log/bulkuseradd.log"
+            shift
+            ;;
+        *)
+            if [[ " $VALID_OPTIONS " =~ " $1 " ]]; then
+                USERS+=($1)
+            else
+                echo "Error: Invalid option '$1'."
+                echo "Valid options are: $VALID_OPTIONS"
+                usage
+                exit 1
+            fi
+            shift
+            ;;
+    esac
+
+done
+
+# If no usernames are provided, we need to get them from the file or show an error.
+if [ ${#USERS[@]} -eq 0 ] && [ -z "$FILE" ]; then
+    echo "Error: No users provided. Use -f FILE or specify usernames."
+    usage
+    exit 1
+fi
+
+# Read usernames from file if -f option is specified
+if [ -n "$FILE" ]; then
+    if [ ! -f "$FILE" ]; then
+        echo "Error: File '$FILE' not found."
+        exit 1
+    fi
+    while IFS= read -r USER; do
+        USERS+=("$USER")
+    done < "$FILE"
+fi
+
+# Default group is 'users' if not specified
+GROUP=${GROUP:-$DEFAULT_GROUP}
+SHELL=${SHELL:-$DEFAULT_SHELL}
+PASSWORD=${PASSWORD:-$DEFAULT_PASSWORD}
+LOG_FILE=${LOG_FILE:-""}
+
+# Validate the group before creating users
+validate_group
+
+# Loop through users and create them
+for USER in "${USERS[@]}"; do
+    # Validate if user already exists
+    validate_user "$USER"
+    if [ $? -ne 0 ]; then
+        continue
+    fi
+
+    # Calculate new UID
+    NEW_UID=$((START_UID++))
+
+    # Create user with specified parameters
+    useradd -m -s "$SHELL" -u "$NEW_UID" -g "$GROUP" "$USER"
+    if [ $? -eq 0 ]; then
+        echo "User '$USER' added successfully with UID $NEW_UID."
+
+        # Set the password using 'chpasswd' (does not require OpenSSL)
+        echo "$USER:$PASSWORD" | chpasswd
+
+        # Log the user creation
+        log_message "User '$USER' added successfully with UID $NEW_UID."
+    else
+        echo "Error: Failed to add user '$USER'."
+        log_message "Error: Failed to add user '$USER'."
+    fi
+
+done
+
+echo "Bulk user creation process completed."
+
