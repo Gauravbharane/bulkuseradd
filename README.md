@@ -23,7 +23,7 @@
 
 ### 1️⃣ **Download & Install Manually**
 ```bash
-git clone https://github.com/gauravbharane/bulkuseradd.git
+git clone https://github.com/Gauravbharane/bulkuseradd.git
 cd bulkuseradd
 sudo cp bulkuseradd /usr/local/bin/
 sudo chmod +x /usr/local/bin/bulkuseradd
@@ -31,7 +31,39 @@ sudo chmod +x /usr/local/bin/bulkuseradd
 
 ### 2️⃣ **Install via RPM (for RHEL-based systems)**
 ```bash
-sudo rpm -ivh bulkuseradd-1.1.0-1.noarch.rpm
+sudo rpm -ivh https://github.com/Gauravbharane/bulkuseradd/blob/main/rpms/bulkuseradd-1.0.0-1.fc41.noarch.rpm
+```
+
+### 3️⃣ **Add to Your YUM Repository**
+To make the RPM package available for installation on multiple machines, add it to a local or remote YUM repository:
+
+#### **Step 1: Create a Local YUM Repository**
+```bash
+sudo mkdir -p /var/www/html/repo/
+sudo cp bulkuseradd-1.0.0-1.fc41.noarch.rpm /var/www/html/repo/
+cd /var/www/html/repo/
+sudo createrepo .
+sudo systemctl restart httpd
+```
+
+#### **Step 2: Add the Repository to YUM**
+Create a repo file:
+```bash
+sudo nano /etc/yum.repos.d/bulkuseradd.repo
+```
+Add the following lines:
+```
+[bulkuseradd]
+name=Bulk User Add Repository
+baseurl=https://github.com/Gauravbharane/bulkuseradd/blob/main/rpms/
+enabled=1
+gpgcheck=0
+```
+Save and exit.
+
+#### **Step 3: Install from the YUM Repository**
+```bash
+sudo yum install bulkuseradd
 ```
 
 ---
@@ -148,7 +180,7 @@ This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) f
 If you have any questions or need help, feel free to reach out!
 
 - ✉️ **Email**: gaurav@example.com  
-- 🌐 **GitHub**: [gauravbharane](https://github.com/gauravbharane)  
+- 🌐 **GitHub**: [Gauravbharane](https://github.com/Gauravbharane)  
 - 🐦 **Twitter**: [@gauravbharane](https://twitter.com/gauravbharane)  
 
 ---
