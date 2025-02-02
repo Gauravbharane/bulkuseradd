@@ -65,22 +65,47 @@ while [[ $# -gt 0 ]]; do
             exit 0
             ;;
         -f)
+            if [ -z "$2" ]; then
+                echo "Error: Option '-f' requires a file argument."
+                usage
+                exit 1
+            fi
             FILE=$2
             shift 2
             ;;
         -g)
+            if [ -z "$2" ]; then
+                echo "Error: Option '-g' requires a group name argument."
+                usage
+                exit 1
+            fi
             GROUP=$2
             shift 2
             ;;
         -u)
+            if [ -z "$2" ]; then
+                echo "Error: Option '-u' requires a UID argument."
+                usage
+                exit 1
+            fi
             START_UID=$2
             shift 2
             ;;
         -s)
+            if [ -z "$2" ]; then
+                echo "Error: Option '-s' requires a shell argument."
+                usage
+                exit 1
+            fi
             SHELL=$2
             shift 2
             ;;
         -p)
+            if [ -z "$2" ]; then
+                echo "Error: Option '-p' requires a password argument."
+                usage
+                exit 1
+            fi
             PASSWORD=$2
             shift 2
             ;;
@@ -89,18 +114,15 @@ while [[ $# -gt 0 ]]; do
             shift
             ;;
         *)
-            if [[ " $VALID_OPTIONS " =~ " $1 " ]]; then
-                USERS+=($1)
+            # Handle comma-separated usernames
+            if [[ "$1" =~ , ]]; then
+                USERS=($(echo "$1" | tr ',' ' '))
             else
-                echo "Error: Invalid option '$1'."
-                echo "Valid options are: $VALID_OPTIONS"
-                usage
-                exit 1
+                USERS+=("$1")
             fi
             shift
             ;;
     esac
-
 done
 
 # If no usernames are provided, we need to get them from the file or show an error.
@@ -159,4 +181,3 @@ for USER in "${USERS[@]}"; do
 done
 
 echo "Bulk user creation process completed."
-

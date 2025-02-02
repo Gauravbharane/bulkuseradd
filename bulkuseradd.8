@@ -1,4 +1,4 @@
-.TH BULKUSERADD 8 "January 26, 2025" "1.0.0" "System Administration Commands"
+.TH BULKUSERADD 8 "February 02, 2025" "1.1.0" "System Administration Commands"
 
 .SH NAME
 bulkuseradd \- Bulk user creation tool for Linux systems
@@ -12,7 +12,7 @@ bulkuseradd \- Bulk user creation tool for Linux systems
 
 .SH DESCRIPTION
 .B bulkuseradd
-is a command-line tool for adding multiple users to a Linux system efficiently. It supports adding users from the command line or a file, assigning them to groups, setting default shells, passwords, UID ranges, and more.
+is a command-line tool for adding multiple users to a Linux system efficiently. It supports adding users from the command line or a file, assigning them to groups, setting default shells, passwords, UID ranges, and more. The script also supports comma-separated usernames and proper validation of missing arguments.
 
 .SH OPTIONS
 .TP
@@ -44,7 +44,7 @@ Set a default password for all users. Default: "Password123".
 Enable logging of user creation activities. By default, logs are saved to "/var/log/bulkuseradd.log".
 
 .SH USAGE
-Users can be added directly as command-line arguments or through an input file using the \fB-f\fP option.
+Users can be added directly as command-line arguments, using comma-separated values, or through an input file with the \fB-f\fP option.
 
 Examples:
 
@@ -52,6 +52,12 @@ Examples:
 Add users directly from the command line:
 .EX
 bulkuseradd -g developers -s /bin/zsh user1 user2 user3
+.EE
+
+.TP
+Add users using comma-separated values:
+.EX
+bulkuseradd harry, natasha, sarah
 .EE
 
 .TP
@@ -72,8 +78,17 @@ Enable logging:
 bulkuseradd -l -f usernames.txt
 .EE
 
+.TP
+Handle missing arguments:
+If an option like \fB-u\fP or \fB-g\fP is provided without an argument, the script will display an error and show usage information.
+.EX
+bulkuseradd -u
+Output:
+Error: Option '-u' requires a UID argument.
+.EE
+
 .SH ERROR HANDLING
-If an invalid or unsupported option is provided, \fBbulkuseradd\fP will display an error message, list available options, and terminate gracefully.
+If an invalid or unsupported option is provided, \fBbulkuseradd\fP will display an error message, list available options, and terminate gracefully. If an argument is missing after an option (e.g., `-g` without a group name), an error message will be shown.
 
 .SH LOGGING
 When logging is enabled using the \fB-l\fP or \fB--log\fP option, user creation activities are recorded in \fB/var/log/bulkuseradd.log\fP.
@@ -92,4 +107,3 @@ This tool is licensed under the MIT License. See the license file in the source 
 .B useradd(8),
 .B groupadd(8),
 .B passwd(1)
-
