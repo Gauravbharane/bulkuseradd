@@ -55,7 +55,7 @@ Add the following lines:
 ```
 [bulkuseradd]
 name=Bulk User Add Repository
-baseurl=https://github.com/Gauravbharane/bulkuseradd/main/RPMS/
+baseurl=https://raw.githubusercontent.com/Gauravbharane/bulkuseradd/main/RPMS/
 enabled=1
 gpgcheck=0
 ```
