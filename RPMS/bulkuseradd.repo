@@ -1,0 +1,6 @@
+[bulkuseradd-repo]
+name=BulkUserAdd Repository
+baseurl=https://raw.githubusercontent.com/gauravbharane/bulkuseradd-repo/main/RPMS/
+enabled=1
+gpgcheck=0
+
