@@ -7,9 +7,8 @@
 # Default values
 DEFAULT_SHELL="/bin/bash"
 DEFAULT_PASSWORD="Password123"
-DEFAULT_GROUP="users"
-START_UID=1000
 LOG_FILE=""
+USER_SPECIFIED_UID=0  # 0 = auto-detect, 1 = user-provided
 
 # Help message function
 usage() {
@@ -21,8 +20,8 @@ This script adds users to the system in bulk.
 
 Options:
   -f FILE            Input file containing usernames (one per line)
-  -g GROUP           Assign users to a specific group (default: users)
-  -u START_UID       Start UID for the first user (default: 1000)
+  -G GROUP           Assign users to a specific group (default: user's own group)
+  -u START_UID       Start UID for the first user (default: system behavior)
   -s SHELL           Specify the shell for the users (default: /bin/bash)
   -p PASSWORD        Set a password for the users (default: Password123)
   -l, --log          Enable logging of user creation (default: /var/log/bulkuseradd.log)
@@ -37,14 +36,6 @@ log_message() {
     fi
 }
 
-# Validate group
-validate_group() {
-    if ! getent group "$GROUP" > /dev/null 2>&1; then
-        echo "Group '$GROUP' does not exist. Creating the group..."
-        groupadd "$GROUP" && log_message "Created group '$GROUP'."
-    fi
-}
-
 # Validate user
 validate_user() {
     if id "$1" &>/dev/null; then
@@ -55,8 +46,13 @@ validate_user() {
     return 0
 }
 
+# Find next available UID (if needed)
+get_next_uid() {
+    local last_uid=$(getent passwd | awk -F: '$3 >= 1000 && $3 < 60000 {print $3}' | sort -n | tail -n1)
+    echo $((last_uid + 1))
+}
+
 # Parse command-line arguments
-VALID_OPTIONS="-h --help -f -g -u -s -p -l --log"
 USERS=()
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -73,9 +69,9 @@ while [[ $# -gt 0 ]]; do
             FILE=$2
             shift 2
             ;;
-        -g)
+        -G)
             if [ -z "$2" ]; then
-                echo "Error: Option '-g' requires a group name argument."
+                echo "Error: Option '-G' requires a group name argument."
                 usage
                 exit 1
             fi
@@ -89,6 +85,7 @@ while [[ $# -gt 0 ]]; do
                 exit 1
             fi
             START_UID=$2
+            USER_SPECIFIED_UID=1
             shift 2
             ;;
         -s)
@@ -114,25 +111,20 @@ while [[ $# -gt 0 ]]; do
             shift
             ;;
         *)
-            # Handle comma-separated usernames
-            if [[ "$1" =~ , ]]; then
-                USERS=($(echo "$1" | tr ',' ' '))
-            else
-                USERS+=("$1")
-            fi
+            USERS+=("$1")
             shift
             ;;
     esac
 done
 
-# If no usernames are provided, we need to get them from the file or show an error.
+# Validate input sources
 if [ ${#USERS[@]} -eq 0 ] && [ -z "$FILE" ]; then
     echo "Error: No users provided. Use -f FILE or specify usernames."
     usage
     exit 1
 fi
 
-# Read usernames from file if -f option is specified
+# Read from file if specified
 if [ -n "$FILE" ]; then
     if [ ! -f "$FILE" ]; then
         echo "Error: File '$FILE' not found."
@@ -143,41 +135,36 @@ if [ -n "$FILE" ]; then
     done < "$FILE"
 fi
 
-# Default group is 'users' if not specified
-GROUP=${GROUP:-$DEFAULT_GROUP}
+# Set defaults
 SHELL=${SHELL:-$DEFAULT_SHELL}
 PASSWORD=${PASSWORD:-$DEFAULT_PASSWORD}
-LOG_FILE=${LOG_FILE:-""}
 
-# Validate the group before creating users
-validate_group
-
-# Loop through users and create them
+# Create users with system's default UID handling
 for USER in "${USERS[@]}"; do
-    # Validate if user already exists
-    validate_user "$USER"
-    if [ $? -ne 0 ]; then
-        continue
+    validate_user "$USER" || continue
+
+    # Resolve UID if needed
+    if [ "$USER_SPECIFIED_UID" -eq 1 ]; then
+        NEW_UID=$(get_next_uid)
+    else
+        NEW_UID=""
     fi
 
-    # Calculate new UID
-    NEW_UID=$((START_UID++))
-
-    # Create user with specified parameters
-    useradd -m -s "$SHELL" -u "$NEW_UID" -g "$GROUP" "$USER"
+    # Create user with or without UID and group
+    if [[ -n "$GROUP" ]]; then
+        useradd -m -s "$SHELL" -u "$NEW_UID" -G "$GROUP" "$USER"
+    else
+        useradd -m -s "$SHELL" "$USER"
+    fi
+    
     if [ $? -eq 0 ]; then
-        echo "User '$USER' added successfully with UID $NEW_UID."
-
-        # Set the password using 'chpasswd' (does not require OpenSSL)
+        echo "User '$USER' added successfully."
         echo "$USER:$PASSWORD" | chpasswd
-
-        # Log the user creation
-        log_message "User '$USER' added successfully with UID $NEW_UID."
+        log_message "User '$USER' added successfully."
     else
         echo "Error: Failed to add user '$USER'."
         log_message "Error: Failed to add user '$USER'."
     fi
-
 done
 
 echo "Bulk user creation process completed."
