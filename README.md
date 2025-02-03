@@ -31,7 +31,7 @@ sudo chmod +x /usr/local/bin/bulkuseradd
 
 ### 2️⃣ **Install via RPM (for RHEL-based systems)**
 ```bash
-sudo rpm -ivh https://github.com/Gauravbharane/bulkuseradd/blob/main/rpms/bulkuseradd-1.0.0-1.fc41.noarch.rpm
+sudo rpm -ivh https://github.com/Gauravbharane/bulkuseradd/blob/main/RPMS/noarch/bulkuseradd-1.0-1.fc41.noarch.rpm
 ```
 
 ### 3️⃣ **Add to Your YUM Repository**
@@ -40,7 +40,7 @@ To make the RPM package available for installation on multiple machines, add it 
 #### **Step 1: Create a Local YUM Repository**
 ```bash
 sudo mkdir -p /var/www/html/repo/
-sudo cp bulkuseradd-1.0.0-1.fc41.noarch.rpm /var/www/html/repo/
+sudo cp RPMS/noarch/bulkuseradd-1.0-1.fc41.noarch.rpm /var/www/html/repo/
 cd /var/www/html/repo/
 sudo createrepo .
 sudo systemctl restart httpd
@@ -55,7 +55,7 @@ Add the following lines:
 ```
 [bulkuseradd]
 name=Bulk User Add Repository
-baseurl=https://github.com/Gauravbharane/bulkuseradd/blob/main/rpms/
+baseurl=https://github.com/Gauravbharane/bulkuseradd/blob/main/RPMS/noarch/
 enabled=1
 gpgcheck=0
 ```
@@ -179,9 +179,9 @@ This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) f
 ## 📢 Contact
 If you have any questions or need help, feel free to reach out!
 
-- ✉️ **Email**: gaurav@example.com  
+- ✉️ **Email**: gauravb1839@gmail.com  
 - 🌐 **GitHub**: [Gauravbharane](https://github.com/Gauravbharane)  
-- 🐦 **Twitter**: [@gauravbharane](https://twitter.com/gauravbharane)  
+- 🐦 **Linkedin**: [@gaurav-bharane](https://linkedin.com/in/gaurav-bharane)  
 
 ---
 
@@ -191,3 +191,4 @@ If you found this project helpful, consider giving it a **star ⭐** on GitHub!
 ---
 
 🚀 **Happy Automating!**
+
