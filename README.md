@@ -5,7 +5,10 @@
 [![Linux](https://img.shields.io/badge/Platform-Linux-blue.svg)](https://www.kernel.org/)
 
 `bulkuseradd` is a powerful command-line tool for **adding multiple users** to a Linux system in bulk. It supports user creation via **command-line arguments** or **files**, assigns groups, sets default shells, passwords, UID ranges, and supports logging.
+
 (!Currently Supported only for Centos, RHEL, Fedora).
+
+
 ---
 
 ## 📦 Features
