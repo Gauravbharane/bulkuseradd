@@ -81,10 +81,6 @@ bulkuseradd -f users.txt
 ```
 *(File `users.txt` should contain one username per line.)*
 
-### 🔹 **Comma-Separated User Input**
-```bash
-bulkuseradd harry, natasha, sarah
-```
 
 ### 🔹 **Assign Users to a Specific Group**
 ```bash
