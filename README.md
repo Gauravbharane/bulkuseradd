@@ -38,7 +38,8 @@ sudo rpm -ivh https://raw.githubusercontent.com/Gauravbharane/bulkuseradd/main/R
 ```
 
 ### 3️⃣ **Add to Your YUM Repository**
-To make the RPM package available for installation on multiple machines, add it to a local or remote YUM repository:
+
+(Currently yum is under work) To make the RPM package available for installation on multiple machines, add it to a local or remote YUM repository:
 
 #### **Step 1: Create a Local YUM Repository**
 ```bash
