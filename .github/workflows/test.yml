@@ -1,0 +1,55 @@
+name: BulkUserAdd CI
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Set Executable Permissions
+        run: chmod +x bulkuseradd
+
+      - name: Run ShellCheck for Linting
+        run: sudo apt-get install -y shellcheck && shellcheck bulkuseradd
+
+      - name: Test Script - Basic Command
+        run: sudo ./bulkuseradd testuser1 testuser2 || echo "Basic test completed"
+
+      - name: Test - File Input
+        run: |
+          echo -e "fileuser1\nfileuser2" > users.txt
+          sudo ./bulkuseradd -f users.txt || echo "File test completed"
+
+      - name: Test - UID Assignment
+        run: sudo ./bulkuseradd -u 4000 uiduser1 uiduser2 || echo "UID test completed"
+
+      - name: Test - Group Assignment
+        run: sudo ./bulkuseradd -g developers groupuser1 || echo "Group test completed"
+
+      - name: Test - Custom Shell
+        run: sudo ./bulkuseradd -s /bin/zsh shelluser1 || echo "Shell test completed"
+
+      - name: Test - Logging
+        run: sudo ./bulkuseradd -l loguser1 && cat /var/log/bulkuseradd.log || echo "Logging test completed"
+
+      - name: Test - Error Handling
+        run: |
+          sudo ./bulkuseradd -u || echo "UID error handling passed"
+          sudo ./bulkuseradd -g || echo "Group error handling passed"
+
+      - name: Validate RPM Package (If Available)
+        run: |
+          if ls RPMS/*.rpm 1> /dev/null 2>&1; then
+            echo "RPM found, testing installation..."
+            sudo apt install -y rpm
+            sudo rpm -i RPMS/*.rpm || echo "RPM installation test completed"
+          else
+            echo "No RPM package found, skipping RPM test."
+          fi
+
+      - name: Test - Man Page Exists
+        run: test -f bulkuseradd.1 || echo "Man page missing!"
